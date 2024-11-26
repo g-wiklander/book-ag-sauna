@@ -45,44 +45,68 @@ def show_my_bookings():
     conn.close()
 
 def time_is_occupied(time):
-    cursor = connect_db()
-    bookings = cursor.execute(SELECT time FROM bookings)
-    for row in bookings:
-        if row[0] == time:
-            return True
-    return False
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT time FROM bookings WHERE time = ?", (time,)) 
+    booking = cursor.fetchall()
+    if len(booking) > 0:
+        cursor.close()
+        conn.close()
+        return True
+    else:
+        cursor.close()
+        conn.close()
+        return False
 
 def validate_time(time):
-    if re.match("^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(0\d|1\d|2[0-3]):00$", time):
+    if re.match(r"^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(0\d|1\d|2[0-3]):00$", time):
+        return True
+    else:
+        return False
+    
+def validate_email(email):
+    if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
         return True
     else:
         return False
 
 def add_booking():
     while True:
-        time = input("Vilken tid önskar du boka? mm-dd-HH:MM")
+        time = input("Vilken tid önskar du boka? Ange på följande format: mm-dd-HH:MM")
         if not validate_time(time):
-            print("Ogiltigt format.")
+            print("Ogiltigt format. Ange: mm-dd-HH:MM")
             continue
         if time_is_occupied(time):
             print("Tiden redan bokad.")
             continue
-        email = input("Ange e-post för bokningen.")
-        cursor = connect_db()
-        cursor.execute("INSERT email, time TO bookings")
-        print("Tiden är bokad!")
         break
+    while True:
+        email = input("Ange e-post för bokningen: ")
+        if not validate_email(email):
+            print("Felaktigt format. Ange e-post på nytt.")
+            continue
+        break
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO bookings (email, time) VALUES (?, ?)", (email, time))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("Tiden är bokad!")
 
 def delete_booking():
     email = input("Ange epost för bokningen:")
     time = input("Ange tidpunkt för bokningen:")
-    cursor = connect_db()
-    cursor.execute(DELETE FROM bookings WHERE email = ? AND time = ?, (email, time))
-    cursor.commit()
-    if len(cursor) == 0:
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM bookings WHERE email = ? AND time = ?", (email, time))
+    conn.commit()
+    if cursor.rowcount == 0:
         print("Du har inga bokningar att ta bort.")
     else:
         print("Din bokning är nu borttagen.")
+    cursor.close()
+    conn.close()
         
 def menu_text():
     print("Visa alla bokningar - tryck 'S'")
