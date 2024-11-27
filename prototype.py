@@ -1,5 +1,4 @@
 #code prototype
-#version innan webbanpassning
 
 import re
 import sqlite3
@@ -19,45 +18,47 @@ def connect_db():
 def show_all_bookings():
     conn = connect_db() #skapar uppkoppling till db
     cursor = conn.cursor() #skapar 'pekar'-objekt
-    cursor.execute("SELECT time FROM bookings") #'pekar' på alla tider i db-tabell 
-    bookings = cursor.fetchall() #variablen 'bookings' innehåller nu en lista med tider
-    if len(bookings) == 0:
-        print("Det finns inga tider bokade.")
-    else:
-        print("Följande tider är bokade:")
-        for booking in bookings:
-            print(booking[0])
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute("SELECT time, email FROM bookings") #'pekar' på alla tider i db-tabell 
+        bookings = cursor.fetchall() #variablen 'bookings' innehåller nu en lista med tider
+        if len(bookings) == 0:
+            return []
+        else:
+            
+            return [{"time": booking[0], "email": booking[1]} for booking in bookings]
+    finally:
+        cursor.close()
+        conn.close()
 
 def show_my_bookings():
     email = input("Ange epost: ")
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT time FROM bookings WHERE email = ?", (email,))
-    bookings = cursor.fetchall()
-    if len(bookings) > 0:
-        print("Du har följande bokningar:")
-        for booking in bookings:
-            print(booking[0])
-    else:
-        print("Du har inga bokningar.")
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute("SELECT time FROM bookings WHERE email = ?", (email,))
+        bookings = cursor.fetchall()
+        if len(bookings) > 0:
+            booking_string = "Du har följande bokningar:\n" + "\n".join(booking[0] for booking in bookings)
+            return booking_string
+        else:
+            return "Du har inga bokningar."
+    finally:
+        cursor.close()
+        conn.close()
 
 def time_is_occupied(time):
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT time FROM bookings WHERE time = ?", (time,)) 
-    booking = cursor.fetchall()
-    if len(booking) > 0:
+    try:
+        cursor.execute("SELECT time FROM bookings WHERE time = ?", (time,)) 
+        booking = cursor.fetchall()
+        if len(booking) > 0:
+            return True
+        else:
+            return False
+    finally:
         cursor.close()
         conn.close()
-        return True
-    else:
-        cursor.close()
-        conn.close()
-        return False
 
 def validate_time(time):
     if re.match(r"^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(0\d|1\d|2[0-3]):00$", time):
@@ -138,4 +139,4 @@ def menu():
 def main():
     menu()
 
-main()
+#main()
