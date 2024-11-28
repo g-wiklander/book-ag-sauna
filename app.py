@@ -1,18 +1,29 @@
-from flask import Flask, render_template
-from prototype import show_all_bookings
+from flask import Flask, render_template, request
+from prototype import *
 app = Flask(__name__)
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route("/book")
+@app.route("/book", methods=["GET", "POST"])
 def book():
-    return "Här kommer bokningsformuläret att visas."
+    if request.method == "POST":
+        date = request.form["date"]
+        time = request.form["time"]
+        time = str(date)+"-"+str(time)
+        email = request.form["email"]
+        booking = add_booking(time, email)
+        return render_template("book.html", booking=booking)
+    return render_template("book.html", booking=None)
 
-@app.route("/my_bookings")
+@app.route("/my_bookings", methods=["GET", "POST"])
 def my_bookings():
-    return "Här kommer användarens bokningar att visas."
+    if request.method == "POST":
+        email = request.form["email"]
+        bookings = show_my_bookings(email)
+        return render_template("my_bookings.html", bookings=bookings)
+    return render_template("my_bookings.html", bookings=None)
 
 @app.route("/about")
 def about():

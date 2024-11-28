@@ -3,14 +3,14 @@
 import re
 import sqlite3
 
-# conn = sqlite3.connect("bookings.db")
-# cursor = conn.cursor()
-# cursor.execute('''CREATE TABLE IF NOT EXISTS bookings
-#              (email TEXT PRIMARY KEY NOT NULL,
-#              time TEXT NOT NULL);
-#              ''')
-# conn.commit()
-# conn.close()
+conn = sqlite3.connect("bookings.db")
+cursor = conn.cursor()
+cursor.execute('''CREATE TABLE IF NOT EXISTS bookings
+             (email TEXT NOT NULL,
+             time TEXT NOT NULL);
+             ''')
+conn.commit()
+conn.close()
 
 def connect_db():
     return sqlite3.connect("bookings.db")
@@ -23,25 +23,23 @@ def show_all_bookings():
         bookings = cursor.fetchall() #variablen 'bookings' innehåller nu en lista med tider
         if len(bookings) == 0:
             return []
-        else:
-            
+        else:            
             return [{"time": booking[0], "email": booking[1]} for booking in bookings]
     finally:
         cursor.close()
         conn.close()
 
-def show_my_bookings():
-    email = input("Ange epost: ")
+def show_my_bookings(email):
     conn = connect_db()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT time FROM bookings WHERE email = ?", (email,))
         bookings = cursor.fetchall()
         if len(bookings) > 0:
-            booking_string = "Du har följande bokningar:\n" + "\n".join(booking[0] for booking in bookings)
-            return booking_string
+            booking_list = [booking[0] for booking in bookings]
+            return booking_list
         else:
-            return "Du har inga bokningar."
+            return ["Du har inga bokningar."]
     finally:
         cursor.close()
         conn.close()
@@ -61,7 +59,7 @@ def time_is_occupied(time):
         conn.close()
 
 def validate_time(time):
-    if re.match(r"^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(0\d|1\d|2[0-3]):00$", time):
+    if re.match(r"^(202[4-9])-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(0\d|1\d|2[0-3]):00$", time):
         return True
     else:
         return False
@@ -72,18 +70,16 @@ def validate_email(email):
     else:
         return False
 
-def add_booking():
+def add_booking(time, email):
     while True:
-        time = input("Vilken tid önskar du boka? Ange på följande format: mm-dd-HH:MM")
         if not validate_time(time):
-            print("Ogiltigt format. Ange: mm-dd-HH:MM")
+            print("Ogiltigt format. Ange: yyyy-mm-dd-HH:MM")
             continue
         if time_is_occupied(time):
             print("Tiden redan bokad.")
             continue
         break
     while True:
-        email = input("Ange e-post för bokningen: ")
         if not validate_email(email):
             print("Felaktigt format. Ange e-post på nytt.")
             continue
