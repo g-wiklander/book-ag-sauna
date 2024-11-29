@@ -7,11 +7,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Välkommen till vårt bokningssystem!</h1>
+        <h1>Välkommen att boka bastun på Åg!</h1>
         <p>Här kan du enkelt boka och hantera dina tider.</p>
         <a href="/book" class="btn btn-primary">Boka tid</a>
         <a href="/my_bookings" class="btn btn-secondary">Mina bokningar</a>
         <a href="/about" class="btn btn-secondary">Om bastun</a>
+        <img src="{{ url_for('static', filename='hyttan.jpg') }}" alt="Hyttan på Åg" style="width: 400px; height: 300px;">
     </div>
 </body>
 </html>
